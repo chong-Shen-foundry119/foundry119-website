@@ -1,0 +1,1296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Foundry 119 is building FoundryOS, an operating system for high-throughput labs: a lab's own procedures, run overnight, autonomously and verified. Toronto.">
+<meta property="og:title" content="Foundry 119">
+<meta property="og:description" content="Intelligence got cheap. Ground truth did not. An operating system for high-throughput labs.">
+<meta property="og:url" content="https://foundry119.ai/">
+<meta name="robots" content="index,follow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23051C2C'/%3E%3Crect x='8' y='40' width='16' height='16' fill='%23E2901F'/%3E%3Ctext x='56' y='30' font-family='monospace' font-size='22' fill='%23FBFDFE' text-anchor='end'%3E119%3C/text%3E%3C/svg%3E">
+<link rel="canonical" href="https://foundry119.ai/">
+<style>html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif;background:#faf9f5}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Foundry 119</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Spectral:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout concept: one sheet of engineering graph paper on 40px modules. A rail for labels, a 640px text column, a margin for notes. Figures span the sheet. */
+  color-scheme:light;
+  /* ground and ink */
+  --paper:#EEF3F6;
+  --paper-hi:#FBFDFE;
+  --ink:#051C2C;
+  --ink-2:#33495A;
+  --ink-3:#536D7C;
+  --steel:#77A9C0;
+  --hair:#C3D2DA;
+  --grid-1:#E9EFF2;
+  --grid-2:#D9E3E9;
+  /* the one accent: amber marks what you can move, and what moving it reveals */
+  --amber:#E2901F;
+  --amber-deep:#8A5710;
+  --amber-wash:#F8E6C6;
+  --live:#0F8F7C;        /* the one colour that means now: the hour on the viewer's own clock */
+  /* type: Spectral carries the argument, IBM Plex Mono carries labels and data */
+  --serif:"Spectral","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",monospace;
+  /* layout */
+  --gutter:clamp(16px,2.85vw,40px);
+  --rail:200px;
+  --text:640px;
+  --gap:40px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  color:var(--ink);
+  font:400 20px/32px var(--serif);
+  font-variant-numeric:lining-nums;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  /* graph paper: 8px fine lines, 40px modules, centred so the 1360px sheet lands on module lines */
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(var(--grid-2) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-2) 1px,transparent 1px),
+    linear-gradient(var(--grid-1) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-1) 1px,transparent 1px);
+  background-size:40px 40px,40px 40px,8px 8px,8px 8px;
+  background-position:calc(50% + 20px) 0,calc(50% + 20px) 0,calc(50% + 4px) 0,calc(50% + 4px) 0;
+}
+::selection{background:var(--amber-wash);color:var(--ink)}
+p{margin:0 0 16px}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+.page{max-width:1360px;margin:0 auto;padding:0 var(--gutter);box-sizing:content-box}
+
+/* shared small type */
+.lab,.rail,.fno,.tag,.head .mid,.head .end,.meta{
+  font:400 11px/16px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);
+}
+.fno{font-weight:500;color:var(--ink)}
+
+/* ---------- running head ---------- */
+.head{display:grid;grid-template-columns:1fr auto 1fr;align-items:baseline;column-gap:16px;padding-top:20px}
+.wordmark{font:500 13px/16px var(--mono);letter-spacing:.3em;text-transform:uppercase;color:var(--ink)}
+.head .end{text-align:right}
+
+/* ---------- title block and Fig. 1 ---------- */
+.hero{display:flex;flex-direction:column;justify-content:center;min-height:calc(100vh - 36px);min-height:calc(100svh - 36px);padding:32px 0 22px}
+.title{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:40px;align-items:end}
+h1{
+  margin:0 0 0 -.035em;
+  font:300 clamp(48px,min(7vw,11.2vh),108px)/.98 var(--serif);
+  letter-spacing:-.022em;
+}
+h1 .ln{display:block;white-space:nowrap}
+h1 .ph{display:none}
+.subtitle{margin:0 0 14px;max-width:270px}
+.subtitle em{display:block;font:italic 300 22px/28px var(--serif);color:var(--ink)}
+.subtitle .meta{display:block;margin-top:12px}
+
+.fig{margin:0}
+.fig1{padding-top:24px}
+.f1-plot{position:relative}
+.f1svg{display:block;overflow:visible;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+.f1svg text{font-family:var(--mono);font-size:10.5px;fill:var(--ink-3)}
+.f1svg text.on{fill:var(--ink);font-weight:500}
+.f1svg .plate{fill:var(--paper-hi);stroke:var(--ink);stroke-width:1}
+.f1svg .brk{fill:none;stroke:var(--ink);stroke-width:1}
+.f1svg text.brk-t{fill:var(--ink)}
+.f1svg .deck{fill:none;stroke:var(--hair);stroke-width:1}
+.w .wo{fill:var(--paper);stroke:var(--ink-3);stroke-width:1;transition:fill .3s ease,stroke .3s ease}
+.w .wi{fill:none;stroke:var(--hair);stroke-width:1;transition:stroke .3s ease}
+.w.s .wo{fill:var(--ink);stroke:var(--ink)}
+.w.s .wi{stroke:var(--ink-2)}
+.w.r .wo{fill:var(--amber);stroke:var(--amber-deep)}
+.w.r .wi{stroke:var(--amber-deep);stroke-opacity:.5}
+.f1svg .xh{stroke:var(--ink);stroke-width:1;opacity:.35}
+.f1svg .hov,.f1svg .hd{fill:none;stroke:var(--ink);stroke-width:1.5}
+.f1svg .now{fill:none;stroke:var(--live);stroke-width:2.5;animation:breathe 2.6s ease-in-out infinite}
+.f1svg .now-ping{fill:none;stroke:var(--live);stroke-width:2;transform-box:fill-box;transform-origin:center;animation:ping 2.6s ease-out infinite}
+.fig1.off .now-ping,.fig1.off .now{animation-play-state:paused}
+@keyframes ping{0%{transform:scale(1);opacity:1}70%,100%{transform:scale(2.8);opacity:0}}
+@keyframes breathe{0%,100%{stroke-width:2.5}50%{stroke-width:4}}
+@keyframes ink-in{from{fill:var(--paper);stroke:var(--ink-3)}to{fill:var(--ink);stroke:var(--ink)}}
+@keyframes ring-in{from{stroke:var(--hair)}to{stroke:var(--ink-2)}}
+.f1svg.intro .w.s .wo{animation:ink-in .45s ease both}
+.f1svg.intro .w.s .wi{animation:ring-in .45s ease both}
+.f1svg.pre .w.s .wo{fill:var(--paper);stroke:var(--ink-3)}
+.f1svg.pre .w.s .wi{stroke:var(--hair)}
+
+/* legend and probe: under the plate by default, in its top margin on wide screens */
+.f1-legend,.f1-probe{margin:10px 0 0;font:400 11px/16px var(--mono);color:var(--ink-2)}
+.f1-legend{display:flex;flex-wrap:wrap;gap:4px 18px}
+.f1-probe{margin-top:6px}
+@media (min-width:1181px){
+  .js .f1-legend,.js .f1-probe{position:absolute;top:5px;margin:0;white-space:nowrap}
+  .js .f1-legend{left:0}
+  .js .f1-probe{right:0;text-align:right}
+}
+.key{display:inline-flex;align-items:center;gap:7px}
+.key i{width:9px;height:9px;border-radius:50%;border:1px solid var(--ink-3);background:var(--paper-hi)}
+.key .k-s{background:var(--ink);border-color:var(--ink)}
+.key .k-r{background:var(--amber);border-color:var(--amber-deep)}
+.key .k-now{background:transparent;border:2px solid var(--live);box-shadow:0 0 0 2px var(--paper-hi),0 0 0 3px var(--live)}
+.f1-probe::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;border:2px solid var(--amber);margin-right:8px;vertical-align:-1px}
+.f1-probe.is-now{color:var(--live)}
+.f1-probe.is-now::before{border-color:var(--live);animation:breathe-dot 2.6s ease-in-out infinite}
+@keyframes breathe-dot{0%,100%{box-shadow:0 0 0 0 rgba(15,143,124,.5)}50%{box-shadow:0 0 0 5px rgba(15,143,124,0)}}
+.f1-probe.is-hover::before{border-color:var(--ink)}
+
+/* CSS-only plate, shown until the script draws the real one */
+.plate-fallback{position:relative;aspect-ratio:24/7;border:1px solid var(--ink);border-radius:10px;background:radial-gradient(circle,var(--paper) 0 33%,var(--ink-3) 34% 37%,transparent 38%) 0 0/calc(100%/24) calc(100%/7) var(--paper-hi)}
+.plate-fallback::after{content:"";position:absolute;left:37.5%;top:0;width:33.3333%;height:71.4286%;background:radial-gradient(circle,var(--ink) 0 37%,transparent 38%) 0 0/12.5% 20%}
+
+.f1-foot{display:grid;grid-template-columns:minmax(0,1.2fr) auto minmax(300px,.95fr);column-gap:40px;align-items:start;margin-top:14px}
+.cap{margin:0;max-width:66ch;font:400 15px/22px var(--serif);color:var(--ink-2)}
+.cap .fno{margin-right:8px}
+.f1-read{white-space:nowrap}
+.f1-read .big{margin:0;font:300 56px/56px var(--mono);letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.f1-read .of{color:var(--ink-3)}
+.f1-read .unit{font:400 13px/16px var(--mono);letter-spacing:0;color:var(--ink-2);margin-left:10px}
+.f1-read .lab{margin:4px 0 0}
+.f1-read .lab b{font-weight:500;color:var(--ink)}
+.f1-ctl{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:16px;align-items:center}
+.f1-ctl .ends{grid-column:1;display:flex;justify-content:space-between;margin-top:-6px}
+.f1-ctl .state{grid-column:1/-1;margin:6px 0 0;font:400 11px/16px var(--mono);color:var(--ink-2);min-height:32px}
+.fig1.short .f1-foot{grid-template-columns:auto minmax(0,1fr)}
+.fig1.short .f1-foot .cap{grid-column:1/-1;grid-row:2;margin-top:18px}
+
+/* ---------- controls ---------- */
+.rng{-webkit-appearance:none;appearance:none;display:block;width:100%;height:44px;margin:0;padding:0;background:transparent;cursor:ew-resize;touch-action:pan-y}
+.rng::-webkit-slider-runnable-track{height:1px;background:var(--ink)}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;margin-top:-12px;border-radius:50%;background:var(--amber);border:1.5px solid var(--ink);box-shadow:0 0 0 3px var(--paper-hi);transition:transform .15s ease}
+.rng:hover::-webkit-slider-thumb,.rng:active::-webkit-slider-thumb{transform:scale(1.12)}
+.rng::-moz-range-track{height:1px;background:var(--ink)}
+.rng::-moz-range-thumb{width:21px;height:21px;border-radius:50%;background:var(--amber);border:1.5px solid var(--ink);box-shadow:0 0 0 3px var(--paper-hi)}
+.rng.bare::-webkit-slider-runnable-track{background:transparent}
+.rng.bare::-moz-range-track{background:transparent}
+.rng:focus-visible{outline:none}
+.rng:focus-visible::-webkit-slider-thumb{outline:2px solid var(--ink);outline-offset:3px}
+.rng:focus-visible::-moz-range-thumb{outline:2px solid var(--ink);outline-offset:3px}
+
+.btn{min-height:44px;padding:0 16px;border:1px solid var(--ink);border-radius:0;background:transparent;color:var(--ink);font:500 11px/16px var(--mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background-color .15s ease,color .15s ease}
+.btn:hover{background:var(--ink);color:var(--paper-hi)}
+.btn.go{background:var(--amber)}
+.btn.go:hover{background:var(--ink)}
+.cta{padding-top:56px}
+.cta .rail b{font:500 11px/16px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+a.cta-demo{display:inline-flex;align-items:center;min-height:52px;padding:0 22px;text-decoration:none;font-size:12px}
+a.cta-demo::after{content:"\2192";margin-left:14px;font-size:16px}
+.cta-sub{margin:12px 0 0;font:400 12px/20px var(--mono);color:var(--ink-2)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--paper-hi)}
+
+/* ---------- the paper: rail, text column, margin notes ---------- */
+.sec{display:grid;grid-template-columns:var(--rail) minmax(0,var(--text)) minmax(0,1fr);column-gap:var(--gap);align-items:baseline;padding-top:120px}
+.rail{grid-column:1;margin:0}
+.rail b{font-weight:500;color:var(--ink)}
+.rail .no{font:300 40px/48px var(--mono);letter-spacing:-.05em;color:var(--ink)}
+.rail .sub{display:block;margin-top:4px}
+.col{grid-column:2;min-width:0}
+.col > :last-child{margin-bottom:0}
+.note{grid-column:3;max-width:320px;margin:0;padding-top:10px;border-top:1px solid var(--ink);font:400 12px/20px var(--mono);color:var(--ink-2)}
+.note b{display:block;margin-bottom:4px;font:500 11px/16px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}
+.note p{margin:0 0 8px}
+.note p:last-child{margin:0}
+.g{margin-top:56px}
+.g0{margin-top:12px}
+
+h2{margin:0 0 20px;font:300 40px/48px var(--serif);letter-spacing:-.014em}
+h3{margin:0 0 10px;font:400 30px/36px var(--serif);letter-spacing:-.012em}
+.lede{font:300 30px/44px var(--serif);letter-spacing:-.008em}
+.col p{max-width:33em}
+sup{font-size:.62em;line-height:0;vertical-align:.62em}
+.var{font-family:var(--serif);font-style:italic}
+
+/* arithmetic set as aligned rows */
+.sums{display:grid;grid-template-columns:auto auto 1fr;column-gap:10px;margin:0;font-variant-numeric:tabular-nums}
+.sums span:nth-child(3n+2){text-align:right;color:var(--ink);font-weight:500}
+.sums span:nth-child(3n){color:var(--ink-3)}
+
+/* ---------- figure plates ---------- */
+.panel{grid-column:1/-1;margin-top:56px}
+.frame{position:relative;background:var(--paper-hi);border:1px solid var(--hair);padding:18px 24px 24px}
+.fig-top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:8px}
+.fig-top .fn{font:400 13px/16px var(--mono);color:var(--ink)}
+.panel > .cap{margin-top:14px}
+.nojs{margin:0;padding:24px 0;font:400 12px/20px var(--mono);color:var(--ink-2)}
+
+/* Fig. 2 */
+.f2-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;column-gap:32px}
+.f2-plotwrap{position:relative;min-width:0}
+.f2svg{display:block;overflow:visible;touch-action:pan-y;cursor:ew-resize;-webkit-user-select:none;user-select:none}
+.f2svg text{font-family:var(--mono);font-size:10.5px;fill:var(--ink-3)}
+.f2svg .ax{stroke:var(--ink);stroke-width:1;fill:none}
+.f2svg .gl{stroke:var(--grid-2);stroke-width:1}
+.f2svg .run{stroke:var(--ink);stroke-width:1;transition:stroke .18s ease}
+.f2svg .run.dead{stroke:var(--steel);stroke-opacity:.5}
+.f2svg .curve{fill:none;stroke:var(--ink);stroke-width:1.5}
+.f2svg .mk{fill:var(--paper-hi);stroke:var(--ink);stroke-width:1.25}
+.f2svg text.mk-t{fill:var(--ink)}
+.f2svg .cur{stroke:var(--amber);stroke-width:1.5}
+.f2svg .guide{stroke:var(--ink);stroke-width:1;stroke-dasharray:2 3}
+.f2svg .knob{fill:var(--amber);stroke:var(--ink);stroke-width:1.5}
+.f2svg text.count{fill:var(--ink);font-size:11px}
+.f2-plotwrap .rng{position:absolute;left:0;top:0;width:auto}
+.f2-read{display:flex;flex-direction:column;border-left:1px solid var(--hair);padding-left:24px}
+.f2-read p{margin:0}
+.f2-read .val{margin:2px 0 20px;font:400 20px/28px var(--mono);font-variant-numeric:tabular-nums}
+.f2-read .big{margin:4px 0 6px;font:300 76px/76px var(--mono);letter-spacing:-.06em;font-variant-numeric:tabular-nums}
+.f2-read .eq{font:400 13px/20px var(--mono);color:var(--ink-2);font-variant-numeric:tabular-nums}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:20px}
+.presets .btn{flex:1;padding:0 6px;white-space:nowrap}
+
+/* Fig. 3 */
+.fig3 .frame{padding-bottom:0}
+.f3-stage{position:relative;margin:0 -24px;overflow:hidden;touch-action:pan-y;cursor:ew-resize;-webkit-user-select:none;user-select:none}
+.f3-stage canvas{display:block;width:100%;height:400px}
+.f3-lab{position:absolute;top:10px;padding:3px 8px;background:var(--paper-hi);border:1px solid var(--hair);font:400 11px/16px var(--mono);color:var(--ink)}
+.f3-lab.a{left:12px}
+.f3-lab.b{right:12px}
+.f3-ctl{position:relative;height:0;margin:0 -24px}
+.f3-ctl .rng{position:absolute;top:-22px;left:-12px;width:calc(100% + 24px)}
+.fig3 > .cap{margin-top:22px}
+
+/* Table 1 */
+.tbl{grid-column:1/-1;margin-top:48px}
+.tbl .cap{margin-bottom:12px}
+.parts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink)}
+.parts dt{padding:18px 24px 14px 0;border-bottom:1px solid var(--ink);font:400 28px/32px var(--serif);letter-spacing:-.01em}
+.parts dd{margin:0;padding:16px 28px 24px 0;font:400 17px/28px var(--serif);color:var(--ink-2)}
+
+/* the bet */
+.bet{grid-column:2/-1;margin:0;max-width:19em;font:300 clamp(30px,4.3vw,60px)/1.12 var(--serif);letter-spacing:-.02em}
+.bet em{font-style:italic}
+
+/* who we would like to meet */
+.meet{grid-column:1/-1;max-width:880px;margin:8px 0 0}
+.meet > div{display:grid;grid-template-columns:var(--rail) minmax(0,var(--text));column-gap:var(--gap);align-items:baseline;padding:18px 0;border-top:1px solid var(--hair)}
+.meet > div:last-child{border-bottom:1px solid var(--hair)}
+.meet dt{font:500 20px/28px var(--serif)}
+.meet dd{margin:0}
+
+/* correspondence */
+.contact{font:300 30px/44px var(--serif);letter-spacing:-.008em}
+.contact a{text-decoration:underline;text-decoration-color:var(--amber);text-decoration-thickness:3px;text-underline-offset:.16em;transition:background-color .15s ease}
+.contact a:hover{background:var(--amber-wash)}
+
+/* ---------- title block (footer) ---------- */
+.tb{display:grid;grid-template-columns:2fr 1.1fr 1fr 1fr;gap:1px;margin:136px 0 40px;border:1px solid var(--ink);background:var(--ink)}
+.tb > div{padding:12px 16px 14px;background:var(--paper-hi);min-width:0}
+.tb .k{display:block;margin-bottom:6px;font:400 10px/14px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.tb .v{display:block;font:400 12px/18px var(--mono);color:var(--ink)}
+.tb .v.s{font:400 19px/24px var(--serif)}
+.tb .wordmark{display:block;margin-top:2px}
+
+/* ---------- medium screens: notes fold under the text ---------- */
+@media (max-width:1180px){
+  .sec{grid-template-columns:140px minmax(0,var(--text));--rail:140px}
+  .note{grid-column:2;margin-top:24px;max-width:420px}
+  .rail .no{font-size:32px;line-height:40px}
+  .bet{grid-column:1/-1;margin-top:10px}
+  .note.g{margin-top:24px}
+  .hero{min-height:0;padding-bottom:8px}
+  .title{grid-template-columns:minmax(0,1fr)}
+  .subtitle{margin:16px 0 0;max-width:none}
+  .f1-foot{grid-template-columns:minmax(0,1fr) minmax(0,1fr);row-gap:20px}
+  .f1-foot .cap{grid-column:1/-1;grid-row:2}
+  .f2-grid{grid-template-columns:minmax(0,1fr)}
+  .f2-read{order:-1;flex-direction:row;flex-wrap:wrap;align-items:flex-end;column-gap:32px;border-left:0;padding:0 0 12px}
+  .presets{margin:0 0 6px auto;padding-top:0}
+  .parts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .parts > div:nth-child(-n+2) dd{border-bottom:1px solid var(--ink)}
+  .tb{grid-template-columns:1fr 1fr;grid-auto-flow:dense}
+  .tb .w2{grid-column:span 2}
+}
+
+/* ---------- phone ---------- */
+@media (max-width:720px){
+  body{font-size:18px;line-height:28px}
+  .head{grid-template-columns:1fr auto;row-gap:4px;padding-top:16px}
+  .head .mid{grid-row:2;grid-column:1/-1}
+  .wordmark{font-size:12px}
+  .hero{padding:28px 0 8px;min-height:0}
+  h1{font-size:clamp(40px,14.6vw,84px);line-height:.98}
+  h1 .ph{display:inline}
+  h1 .ln{white-space:normal}
+  .subtitle br{display:none}
+  .subtitle em{font-size:20px;line-height:26px}
+  .subtitle .meta{display:none}
+  .fig1{padding-top:28px}
+  .f1-foot{display:flex;flex-direction:column;margin-top:16px}
+  .f1-foot .cap{order:3}
+  .f1-read .big{font-size:72px;line-height:76px}
+  .f1-read .lab{margin:0 0 2px}
+  .f1-ctl{grid-template-columns:minmax(0,1fr)}
+  .f1-ctl .btn{grid-row:3;margin-top:12px;width:100%}
+  .f1-ctl .state{grid-row:4;min-height:0;margin-top:10px}
+  .f1-foot .cap{margin-top:20px}
+  .cap{font-size:15px;line-height:22px}
+
+  .sec{display:block;padding-top:72px}
+  .rail{margin-bottom:10px}
+  .rail.g{margin-top:40px}
+  .rail.g0{margin-top:4px}
+  .col.g,.col.g0{margin-top:0}
+  .rail .no{font:500 11px/16px var(--mono);letter-spacing:.08em}
+  .rail .sub{display:inline;margin:0 0 0 6px}
+  .note,.note.g{margin-top:20px;max-width:none}
+  h2{font-size:32px;line-height:38px;margin-bottom:16px}
+  h3{font-size:25px;line-height:30px}
+  .lede,.contact{font-size:23px;line-height:33px}
+
+  .panel{margin-top:32px}
+  .frame{padding:14px 12px 16px}
+  .f3-stage,.f3-ctl{margin:0 -12px}
+  .f3-lab .x{display:none}
+  .fig-top{flex-direction:column;gap:2px;margin-bottom:10px}
+  .f2-read{display:grid;grid-template-columns:auto 1fr;align-items:end;column-gap:20px}
+  .f2-read .big{font-size:64px;line-height:64px;grid-row:1 / span 2;grid-column:1;margin:0}
+  .f2-read .lab.l1{display:none}
+  .f2-read .val{margin:0;font-size:16px;line-height:24px}
+  .f2-read .lab.l2{grid-column:1/-1;grid-row:3;margin-top:6px}
+  .f2-read .eq{grid-column:2}
+  .presets{grid-column:1/-1;margin:12px 0 0}
+  .presets .btn{flex:1}
+  .f3-stage canvas{height:320px}
+  .f3-lab{top:8px}
+  .f3-lab.a{left:8px}
+  .f3-lab.b{right:8px}
+
+  .tbl{margin-top:32px}
+  .parts{grid-template-columns:minmax(0,1fr)}
+  .parts > div{border-bottom:1px solid var(--ink)}
+  .parts > div:last-child{border-bottom:0}
+  .parts > div:nth-child(-n+2) dd{border-bottom:0}
+  .parts dt{padding:14px 0 2px;border-bottom:0;font-size:24px;line-height:30px}
+  .parts dd{padding:0 0 16px}
+  .bet{font-size:clamp(30px,8.6vw,44px);line-height:1.14}
+  .meet > div{display:block;padding:14px 0 16px}
+  .meet dt{margin-bottom:2px}
+  .tb{margin:88px 0 24px}
+  .tb > div{padding:10px 12px 12px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .w .wo,.w .wi,.f2svg .run,.btn,.contact a,.rng::-webkit-slider-thumb{transition:none}
+  .f1svg.intro .w.s .wo,.f1svg.intro .w.s .wi{animation:none}
+  .f1svg .now-ping{animation:none;opacity:0}
+  .f1svg .now,.f1-probe.is-now::before{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="head">
+  <span class="wordmark">Foundry 119</span>
+  <span class="mid">Working Paper No. 1</span>
+  <span class="end">Stealth mode, Toronto</span>
+</header>
+
+<main>
+
+<!-- Title block and Fig. 1: the week as a 168-well plate -->
+<section class="hero" aria-labelledby="t">
+  <div class="title" id="title">
+    <h1 id="t"><span class="ln">Intelligence <br class="ph">got cheap.</span> <span class="ln">Ground truth <br class="ph">did not.</span></h1>
+    <p class="subtitle"><em>An operating system <br>for high-throughput labs.</em><span class="meta">Toronto, 43.65° N, 79.38° W<br>October 2026</span></p>
+  </div>
+
+  <figure class="fig fig1" id="fig1" aria-labelledby="fig1-cap">
+    <div class="f1-plot" id="fig1-plot">
+      <div id="fig1-draw" role="img" aria-label="A plate of 168 wells: seven rows for the days of the week, 24 columns for the hours. 40 wells are filled, Monday to Friday, 9 to 5. The other 128 are empty.">
+        <div class="plate-fallback"></div>
+      </div>
+      <p class="f1-legend" id="fig1-legend">
+        <span class="key"><i class="k-s"></i>staffed</span>
+        <span class="key"><i></i>dark</span>
+        <span class="key"><i class="k-r"></i>autonomous with Foundry 119</span>
+        <span class="key"><i class="k-now"></i>this hour, on your clock</span>
+      </p>
+      <p class="f1-probe" id="fig1-probe">One well is one hour</p>
+    </div>
+    <div class="f1-foot" id="fig1-foot">
+      <figcaption class="cap" id="fig1-cap"><span class="fno">Fig. 1</span>One week in a one-shift lab, drawn as a plate of 168 wells. Each well is one hour. A lab that works one shift runs 40 of them, Monday to Friday, 9 to 5. The other 128 are nights and weekends, with the instruments switched off.</figcaption>
+      <div class="f1-read">
+        <p class="big"><output id="fig1-count" for="fig1-hours" aria-live="off">40</output><span class="of">/168</span><span class="unit">h</span></p>
+        <p class="lab"><b id="fig1-pct">24%</b> of the week running</p>
+      </div>
+      <div class="f1-ctl" id="fig1-ctl">
+        <input class="rng" type="range" id="fig1-hours" min="40" max="168" step="1" value="40" aria-label="Hours running per week, from 40 to 168">
+        <button class="btn go" type="button" id="fig1-run">Run all 168 hours</button>
+        <div class="ends lab"><span>40, one shift</span><span>168, the goal</span></div>
+        <p class="state" id="fig1-state">One shift, Monday to Friday. Drag the handle to run the other 128 hours.</p>
+      </div>
+    </div>
+  </figure>
+</section>
+
+<!-- Call to action. Set the booking link once, in DEMO_URL below; both buttons read it. -->
+<section class="sec cta" aria-label="Book a demo">
+  <p class="rail"><b>Book a demo</b></p>
+  <div class="col">
+    <a class="btn go cta-demo" href="https://calendar.app.google/g9UwADniLsrhJBHj9" target="_blank" rel="noopener">Lab directors: book a demo</a>
+    <p class="cta-sub">Thirty minutes with a founder. Bring the procedure you would most like to stop babysitting.</p>
+  </div>
+</section>
+
+<!-- Abstract -->
+<section class="sec" aria-labelledby="s0">
+  <h2 class="rail" id="s0"><b>Abstract</b></h2>
+  <div class="col">
+    <p class="lede">AI can draft a thousand hypotheses before lunch. A lab bench still tests them one shift at a time. Foundry 119 is building FoundryOS, which runs a lab's own procedures overnight, autonomously and verified, on standard lab instruments and forward-deployed robotics. FoundryOS has four parts: (i) an AI copilot, (ii) a digital twin of the bench, (iii) verified robotics, and (iv) an on-prem server.</p>
+  </div>
+  <aside class="note">
+    <b>On the name</b>
+    <p>The periodic table has 118 known elements. Element 119 would open a new row. Theory has described it for decades. Nobody has made it. It is waiting on an experiment.</p>
+  </aside>
+</section>
+
+<!-- 1. The week -->
+<section class="sec" aria-labelledby="s1">
+  <p class="rail"><b class="no">1</b></p>
+  <div class="col">
+    <h2 id="s1">The week</h2>
+    <p>A lab that works one shift runs 40 of the week's 168 hours (Fig. 1). That is 24%. The other 128 hours are nights and weekends, with the instruments switched off.</p>
+    <p>The goal we are building toward is all 168 hours running. We do not claim it yet. Our first public benchmark run comes this winter.</p>
+  </div>
+  <aside class="note">
+    <b>Arithmetic</b>
+    <p class="sums">
+      <span>7 d × 24 h</span><span>168 h</span><span>in a week</span>
+      <span>5 d × 8 h</span><span>40 h</span><span>in one shift</span>
+      <span>40 / 168</span><span>24%</span><span>running</span>
+      <span>168 − 40</span><span>128 h</span><span>dark</span>
+    </p>
+  </aside>
+</section>
+
+<!-- 2. Beliefs -->
+<section class="sec" aria-labelledby="s2">
+  <p class="rail"><b class="no">2</b></p>
+  <div class="col">
+    <h2 id="s2">Three things we have come to believe</h2>
+  </div>
+
+  <p class="rail g0">2.1</p>
+  <div class="col g0">
+    <h3>Experiments are the scarce input.</h3>
+    <p>Models keep getting better at proposing what to try. Someone still has to run it, measure it and trust the result. The bench decides how fast science moves.</p>
+  </div>
+
+  <p class="rail g">2.2</p>
+  <div class="col g">
+    <h3>Long runs fail on recovery.</h3>
+    <p>A robot that gets each step right 99% of the time sounds reliable. Chain enough steps and almost nothing finishes (Fig. 2). So we check every step and recover.</p>
+  </div>
+  <aside class="note g">
+    <b>Arithmetic</b>
+    <p>Chance that a run of <span class="var">n</span> steps finishes with every step right: 0.99<sup><span class="var">n</span></sup></p>
+    <p class="sums">
+      <span>20 steps</span><span>82%</span><span></span>
+      <span>100 steps</span><span>37%</span><span></span>
+      <span>500 steps</span><span>0.7%</span><span></span>
+    </p>
+  </aside>
+
+  <figure class="fig panel" id="fig2" aria-labelledby="fig2-cap">
+    <div class="frame">
+      <div class="fig-top">
+        <span class="fn">chance a run finishes = 0.99<sup><span class="var">n</span></sup></span>
+        <span class="tag">Arithmetic. No measurements.</span>
+      </div>
+      <div class="f2-grid">
+        <div class="f2-plotwrap">
+          <div id="fig2-plot" role="img" aria-label="A curve falling from 100% at zero steps to 82% at 20 steps, 37% at 100 steps and 0.7% at 500 steps.">
+            <noscript><p class="nojs">This figure is drawn with JavaScript. Its numbers are in the caption and in the note above.</p></noscript>
+          </div>
+          <input class="rng bare" type="range" id="fig2-n" min="0" max="500" step="1" value="100" aria-label="Steps in the run, n, from 0 to 500">
+        </div>
+        <div class="f2-read">
+          <p class="lab l1">Steps in the run</p>
+          <p class="val"><span class="var">n</span> = <output id="fig2-nout" for="fig2-n" aria-live="off">100</output></p>
+          <p class="lab l2">Runs that finish with every step right</p>
+          <p class="big"><output id="fig2-pct" for="fig2-n" aria-live="off">37%</output></p>
+          <p class="eq" id="fig2-eq">0.99<sup>100</sup> = 0.366</p>
+          <div class="presets" role="group" aria-label="Jump to a run length">
+            <button class="btn" type="button" id="fig2-p20" data-n="20">20 steps</button>
+            <button class="btn" type="button" id="fig2-p100" data-n="100">100 steps</button>
+            <button class="btn" type="button" id="fig2-p500" data-n="500">500 steps</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <figcaption class="cap" id="fig2-cap"><span class="fno">Fig. 2</span>The chance that a run finishes with every step right, when each step succeeds 99% of the time on its own. The hairlines are the same curve drawn as a hundred runs, each one ending at the step where it fails. Drag the amber handle to change the length of the run.</figcaption>
+  </figure>
+
+  <p class="rail g">2.3</p>
+  <div class="col g">
+    <h3>A lab's science should stay its own.</h3>
+    <p>Experimental capacity is concentrating in a few very large labs. We think every other lab should have its own loop, with its data in its own building and its models in its own name.</p>
+  </div>
+</section>
+
+<!-- Call to action. Set the booking link once, in DEMO_URL below; both buttons read it. -->
+<section class="sec cta" aria-label="Book a demo">
+  <p class="rail"><b>Book a demo</b></p>
+  <div class="col">
+    <a class="btn go cta-demo" href="https://calendar.app.google/g9UwADniLsrhJBHj9" target="_blank" rel="noopener">Lab directors: book a demo</a>
+    <p class="cta-sub">If your lab runs more backlog than bench, we would like to see it.</p>
+  </div>
+</section>
+
+<!-- 3. What we are building -->
+<section class="sec" aria-labelledby="s3">
+  <p class="rail"><b class="no">3</b></p>
+  <div class="col">
+    <h2 id="s3">What we are building</h2>
+    <p>FoundryOS installs in the lab you already have. It is one system with four parts. A lab can start with the software and add the robotics when a procedure is worth automating.</p>
+  </div>
+
+  <div class="tbl">
+    <p class="cap" id="tbl1-cap"><span class="fno">Table 1</span>FoundryOS, one system in four parts.</p>
+    <dl class="parts" aria-labelledby="tbl1-cap">
+      <div><dt>A copilot</dt><dd>Scientists talk to it at any hour, including the one when the idea arrives.</dd></div>
+      <div><dt>A twin</dt><dd>A digital copy of the bench, where every run is rehearsed before reagents are spent.</dd></div>
+      <div><dt>Verified robotics</dt><dd>They run your own procedures on the equipment you already own, with a check at every step.</dd></div>
+      <div><dt>Your walls</dt><dd>It runs on a server the lab owns. Client work and data never leave the building.</dd></div>
+    </dl>
+  </div>
+
+  <p class="rail g"><b>Status</b></p>
+  <div class="col g">
+    <p>We work with contract labs in chemistry and biology today. The product is in build, and we will show it when a run has earned it.</p>
+  </div>
+</section>
+
+<!-- 4. The bet -->
+<section class="sec" aria-labelledby="s4">
+  <h2 class="rail" id="s4"><b class="no">4</b> <span class="sub">The bet</span></h2>
+  <p class="bet">In twenty years, human innovation will be led either by a few conglomerate labs, or by millions of labs that prosper. <em>We are building for the millions.</em></p>
+
+  <figure class="fig panel fig3" id="fig3" aria-labelledby="fig3-cap">
+    <div class="frame">
+      <div class="fig-top">
+        <span class="fn">the same field of labs, held two ways</span>
+        <span class="tag">Illustration. No data.</span>
+      </div>
+      <div class="f3-stage" id="fig3-stage">
+        <canvas id="fig3-canvas" role="img" aria-label="Left of the divide: a few very large labs drawn as big nested rings, and every other lab as a small point. Right of the divide: every lab drawn as its own small closed ring."></canvas>
+        <span class="f3-lab a">(a) A few<span class="x"> conglomerate labs</span></span>
+        <span class="f3-lab b">(b) Millions<span class="x"> of labs that prosper</span></span>
+        <noscript><p class="nojs">This illustration is drawn with JavaScript. Its meaning is in the caption.</p></noscript>
+      </div>
+      <div class="f3-ctl">
+        <input class="rng bare" type="range" id="fig3-split" min="0" max="100" step="1" value="50" aria-label="Move the divide between a few labs and millions of labs">
+      </div>
+    </div>
+    <figcaption class="cap" id="fig3-cap"><span class="fno">Fig. 3</span>(a) Experimental capacity sits in a few very large labs, and every other lab is a point without a loop. (b) Every lab has its own loop, with its data in its own building and its models in its own name. Drag the amber handle to move the divide.</figcaption>
+  </figure>
+</section>
+
+<!-- 5. Who we would like to meet -->
+<section class="sec" aria-labelledby="s5">
+  <p class="rail"><b class="no">5</b></p>
+  <div class="col">
+    <h2 id="s5">Who we would like to meet</h2>
+  </div>
+  <dl class="meet">
+    <div><dt>Lab directors</dt><dd>You run a contract lab with more backlog than bench, and you would like your nights and weekends back.</dd></div>
+    <div><dt>Instrument and robotics makers</dt><dd>You want your hardware validated on an open operating layer that labs can install themselves.</dd></div>
+    <div><dt>Builders</dt><dd>You have run a self-driving lab, and you would like to put one inside every lab that wants it.</dd></div>
+  </dl>
+</section>
+
+<!-- 6. Who we are -->
+<section class="sec" aria-labelledby="s6">
+  <p class="rail"><b class="no">6</b></p>
+  <div class="col">
+    <h2 id="s6">Who we are</h2>
+    <p>Four founders, one bench. Between us we have run an industrial R&amp;D lab for eleven years, automated factories and diagnostic assays, shipped AI hardware at volume, and built and sold an AI software company. Two of our earlier companies went through Y Combinator.</p>
+  </div>
+  <aside class="note">
+    <b>Authors</b>
+    <p>Names withheld while in stealth.</p>
+  </aside>
+</section>
+
+<!-- Correspondence -->
+<section class="sec" aria-labelledby="s7">
+  <h2 class="rail" id="s7"><b>Correspondence</b></h2>
+  <div class="col">
+    <p class="contact">Write to <a href="mailto:chong@foundry119.ai">chong@foundry119.ai</a>, and we will write back when there is a run to show. Or ask the person who showed you this page.</p>
+  </div>
+</section>
+
+</main>
+
+<!-- Footer, set as the title block of an engineering sheet -->
+<footer class="tb">
+  <div class="w2"><span class="k">Title</span><span class="v s">Intelligence got cheap. Ground truth did not.</span></div>
+  <div><span class="k">Drawn by</span><span class="v wordmark">Foundry 119</span></div>
+  <div><span class="k">Document</span><span class="v">Working Paper No. 1</span></div>
+  <div><span class="k">Date</span><span class="v">October 2026</span></div>
+  <div class="w2"><span class="k">Status</span><span class="v">In stealth. The details are shared in person.</span></div>
+  <div><span class="k">Place</span><span class="v">Toronto, 43.65° N 79.38° W</span></div>
+  <div><span class="k">Set in</span><span class="v">Spectral, IBM Plex Mono</span></div>
+  <div><span class="k">Copyright</span><span class="v">© 2026 Foundry 119. Toronto, Canada.</span></div>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* The booking link. Replace this one address and both call-to-action buttons follow. */
+  var DEMO_URL = 'https://calendar.app.google/g9UwADniLsrhJBHj9';
+  Array.prototype.forEach.call(document.querySelectorAll('.cta-demo'), function (a) { a.href = DEMO_URL; });
+
+  var d = document;
+  var NS = 'http://www.w3.org/2000/svg';
+  var TAU = Math.PI * 2;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function $(id) { return d.getElementById(id); }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function px(n) { return Math.round(n * 100) / 100; }
+  function svgEl(name, attrs, parent) {
+    var e = d.createElementNS(NS, name), k;
+    for (k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function label(parent, x, y, str, cls, anchor) {
+    var t = svgEl('text', { x: px(x), y: px(y) }, parent);
+    if (cls) t.setAttribute('class', cls);
+    if (anchor) t.setAttribute('text-anchor', anchor);
+    t.textContent = str;
+    return t;
+  }
+  function tok(name) { return getComputedStyle(d.documentElement).getPropertyValue(name).trim(); }
+
+  /* One animation frame. Falls back to a timer when no frames are being produced (a background tab, a headless capture). */
+  function nextFrame(fn) {
+    var fired = false, r = 0, t = 0;
+    function go() { if (fired) return; fired = true; cancelAnimationFrame(r); clearTimeout(t); fn(performance.now()); }
+    r = requestAnimationFrame(go);
+    t = setTimeout(go, 60);
+    return function () { fired = true; cancelAnimationFrame(r); clearTimeout(t); };
+  }
+  function noop() {}
+
+  /* Horizontal drag for mouse, pen and touch. The node keeps touch-action: pan-y, so the page still scrolls. */
+  function dragX(node, fn) {
+    var active = false;
+    function at(e) { fn(e.clientX - node.getBoundingClientRect().left); }
+    node.addEventListener('pointerdown', function (e) {
+      if (e.button) return;
+      active = true;
+      try { node.setPointerCapture(e.pointerId); } catch (err) {}
+      at(e);
+    });
+    node.addEventListener('pointermove', function (e) { if (active) at(e); });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (type) {
+      node.addEventListener(type, function () { active = false; });
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     Fig. 1  The week as a plate of 168 wells. 40 are staffed.
+     The handle adds the other 128 in clock order, from Monday 17:00.
+     ------------------------------------------------------------------ */
+  var DAY = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  function isStaffed(dy, h) { return dy < 5 && h >= 9 && h < 17; }
+
+  var rank = [];            // rank[i] = position of dark hour i in the fill order, or -1 if staffed
+  var order = [];           // order[k] = the k-th dark hour to be filled
+  (function () {
+    var k, t;
+    for (k = 0; k < 168; k++) rank[k] = -1;
+    for (k = 0; k < 168; k++) {
+      t = (17 + k) % 168;
+      if (!isStaffed(Math.floor(t / 24), t % 24)) { rank[t] = order.length; order.push(t); }
+    }
+  })();
+
+  var f1 = {
+    fig: $('fig1'), wrap: $('fig1-plot'), draw: $('fig1-draw'), foot: $('fig1-foot'), ctl: $('fig1-ctl'),
+    input: $('fig1-hours'), count: $('fig1-count'), pct: $('fig1-pct'),
+    run: $('fig1-run'), state: $('fig1-state'), probe: $('fig1-probe'), legend: $('fig1-legend'),
+    wells: [], hours: 40, geo: null, stop: noop, hover: -1, head: -1, timer: 0
+  };
+
+  function f1render(mode) {
+    var W = f1.fig.clientWidth;
+    if (!W) return;
+    var phone = W < 680;
+    var hang = f1.fig.getBoundingClientRect().left >= 39.5; // room for day labels in the page gutter
+    var gl = hang ? 0 : (phone ? 16 : 36);
+    var gt = phone ? 30 : 46;
+    var padY = phone ? 5 : 12, padX = phone ? 5 : 12;
+    var pitch = (W - gl - 2 * padX) / 24;
+
+    f1.foot.style.maxWidth = '';
+    f1.fig.classList.remove('short');
+    if (!phone) {
+      // whole pixels; in the wide layout, short enough that the figure and its controls stay in the first viewport
+      var wide = Math.floor(pitch), room;
+      pitch = wide;
+      if (W >= 1100) {
+        var hero = f1.fig.parentNode;
+        var top = hero.getBoundingClientRect().top + window.pageYOffset +
+          parseFloat(getComputedStyle(hero).paddingTop) + $('title').offsetHeight;
+        room = window.innerHeight - top - 24 - 14 - f1.foot.offsetHeight - 22;
+        pitch = Math.floor(Math.min(wide, (room - gt - 2 * padY) / 7));
+        if (pitch < wide) {
+          // short window: readout and controls stay under the plate, the caption drops below them
+          f1.fig.classList.add('short');
+          room = window.innerHeight - top - 24 - 14 - f1.ctl.offsetHeight - 22;
+          pitch = Math.floor(Math.max(30, Math.min(wide, (room - gt - 2 * padY) / 7)));
+          f1.foot.style.maxWidth = pitch < wide ? (gl + 24 * pitch + 2 * padX) + 'px' : '';
+        }
+      }
+      if (pitch === wide) padX = (W - gl - 24 * pitch) / 2;
+    }
+
+    var r = phone ? pitch * 0.36 : Math.round(pitch * 0.36);
+    var pw = 24 * pitch + 2 * padX, ph = 7 * pitch + 2 * padY;
+    var svgW = gl + pw, svgH = gt + ph + 1;
+    var x0 = gl + padX + pitch / 2, y0 = gt + padY + pitch / 2;
+
+    f1.draw.innerHTML = '';
+    f1.wrap.classList.add('js');
+    f1.wrap.style.width = W >= 1100 ? px(svgW) + 'px' : '';
+    f1.legend.style.left = W >= 1100 ? gl + 'px' : '';
+    var svg = svgEl('svg', {
+      width: px(svgW), height: px(svgH), viewBox: '0 0 ' + px(svgW) + ' ' + px(svgH),
+      'class': 'f1svg' + (mode ? ' ' + mode : ''), 'aria-hidden': 'true'
+    }, f1.draw);
+
+    // plate outline, with the chamfered corner of a real microplate
+    var c = phone ? 6 : 16, q = phone ? 4 : 10;
+    var L = gl + 0.5, T = gt + 0.5, R = gl + pw - 0.5, B = gt + ph - 0.5;
+    svgEl('path', {
+      'class': 'plate',
+      d: 'M' + px(L + c) + ' ' + T + 'H' + px(R - q) + 'Q' + px(R) + ' ' + T + ' ' + px(R) + ' ' + (T + q) +
+         'V' + (B - q) + 'Q' + px(R) + ' ' + B + ' ' + px(R - q) + ' ' + B + 'H' + px(L + q) +
+         'Q' + L + ' ' + B + ' ' + L + ' ' + (B - q) + 'V' + (T + c) + 'Z'
+    }, svg);
+    if (!phone) {
+      var k = 5;                                       // inner deck line, 5px inside the rim
+      svgEl('path', {
+        'class': 'deck',
+        d: 'M' + px(L + c + 2) + ' ' + (T + k) + 'H' + px(R - q) + 'Q' + px(R - k) + ' ' + (T + k) + ' ' + px(R - k) + ' ' + (T + q) +
+           'V' + (B - q) + 'Q' + px(R - k) + ' ' + (B - k) + ' ' + px(R - q) + ' ' + (B - k) + 'H' + px(L + q) +
+           'Q' + (L + k) + ' ' + (B - k) + ' ' + (L + k) + ' ' + (B - q) + 'V' + (T + c + 2) + 'Z'
+      }, svg);
+    }
+
+    // the shift, bracketed
+    var bx1 = x0 + 9 * pitch - r - 2, bx2 = x0 + 16 * pitch + r + 2, by = gt - (phone ? 19 : 24) + 0.5;
+    svgEl('path', { 'class': 'brk', d: 'M' + px(bx1) + ' ' + (by + 4) + 'V' + by + 'H' + px(bx2) + 'V' + (by + 4) }, svg);
+    label(svg, (bx1 + bx2) / 2, by - 5.5, phone ? 'one shift' : 'one shift, 9 am to 5 pm', 'brk-t', 'middle');
+
+    // axis labels: hours across, days down
+    var dayT = [], hourT = [], dy, h, t;
+    for (h = 0; h < 24; h++) {
+      t = null;
+      if (!phone || h % 6 === 0) t = label(svg, x0 + h * pitch, gt - 7, pad2(h), '', 'middle');
+      hourT.push(t);
+    }
+    for (dy = 0; dy < 7; dy++) {
+      dayT.push(label(svg, hang ? -6 : gl - (phone ? 7 : 10), y0 + dy * pitch + 3.5,
+        (hang || !phone) ? DAY[dy] : DAY[dy].charAt(0), '', 'end'));
+    }
+
+    // crosshair, under the wells
+    var xh = svgEl('line', { 'class': 'xh', visibility: 'hidden' }, svg);
+    var xv = svgEl('line', { 'class': 'xh', visibility: 'hidden' }, svg);
+
+    // 168 wells
+    f1.wells = [];
+    var g = svgEl('g', {}, svg), w, n = 0;
+    for (dy = 0; dy < 7; dy++) {
+      for (h = 0; h < 24; h++) {
+        w = svgEl('g', { 'class': 'w' }, g);
+        var wo = svgEl('circle', { cx: px(x0 + h * pitch), cy: px(y0 + dy * pitch), r: px(r), 'class': 'wo' }, w);
+        var wi = phone ? null : svgEl('circle', { cx: px(x0 + h * pitch), cy: px(y0 + dy * pitch), r: px(r - 5), 'class': 'wi' }, w);
+        if (mode === 'intro' && isStaffed(dy, h)) {
+          wo.style.animationDelay = (150 + n * 24) + 'ms';
+          if (wi) wi.style.animationDelay = (150 + n * 24) + 'ms';
+          n++;
+        }
+        f1.wells.push(w);
+      }
+    }
+
+    // the present hour, by the viewer's clock
+    var ping = svgEl('circle', { 'class': 'now-ping', r: px(r + (phone ? 2 : 4)) }, svg);
+    var now = svgEl('circle', { 'class': 'now', r: px(r + (phone ? 2 : 4)) }, svg);
+    var hov = svgEl('circle', { 'class': 'hov', r: px(r + (phone ? 2 : 4)), visibility: 'hidden' }, svg);
+    var hd = svgEl('circle', { 'class': 'hd', r: px(r + (phone ? 2 : 4)), visibility: 'hidden' }, svg);
+
+    f1.geo = { x0: x0, y0: y0, pitch: pitch, left: gl, top: gt, roomy: pw >= 1200 || W < 1100, now: now, ping: ping, hov: hov, hd: hd, xh: xh, xv: xv, dayT: dayT, hourT: hourT };
+    f1.hover = -1;
+
+    function probe(e) {
+      var box = svg.getBoundingClientRect();
+      var col = Math.floor((e.clientX - box.left - (x0 - pitch / 2)) / pitch);
+      var row = Math.floor((e.clientY - box.top - (y0 - pitch / 2)) / pitch);
+      f1hover(col >= 0 && col < 24 && row >= 0 && row < 7 ? row * 24 + col : -1);
+    }
+    svg.addEventListener('pointermove', probe);
+    svg.addEventListener('pointerdown', probe);
+    svg.addEventListener('pointerleave', function () { f1hover(-1); });
+    svg.addEventListener('pointercancel', function () { f1hover(-1); });
+    svg.addEventListener('pointerup', function (e) {
+      if (e.pointerType !== 'mouse') setTimeout(function () { f1hover(-1); }, 1600);
+    });
+
+    f1paint();
+    f1now();
+  }
+
+  function f1word(i) {
+    return rank[i] < 0 ? 'staffed' : (rank[i] < f1.hours - 40 ? 'autonomous with Foundry 119' : 'dark');
+  }
+
+  function f1hover(i) {
+    var g = f1.geo, prev = f1.hover, dy, h, cx, cy;
+    if (!g || i === prev) return;
+    if (prev >= 0) {
+      g.dayT[Math.floor(prev / 24)].removeAttribute('class');
+      if (g.hourT[prev % 24]) g.hourT[prev % 24].removeAttribute('class');
+    }
+    f1.hover = i;
+    var show = i >= 0 ? 'visible' : 'hidden';
+    g.hov.setAttribute('visibility', show);
+    g.xh.setAttribute('visibility', show);
+    g.xv.setAttribute('visibility', show);
+    if (i >= 0) {
+      dy = Math.floor(i / 24); h = i % 24;
+      cx = px(g.x0 + h * g.pitch); cy = px(g.y0 + dy * g.pitch);
+      g.hov.setAttribute('cx', cx); g.hov.setAttribute('cy', cy);
+      g.xh.setAttribute('x1', g.left); g.xh.setAttribute('x2', cx); g.xh.setAttribute('y1', cy); g.xh.setAttribute('y2', cy);
+      g.xv.setAttribute('x1', cx); g.xv.setAttribute('x2', cx); g.xv.setAttribute('y1', g.top); g.xv.setAttribute('y2', cy);
+      g.dayT[dy].setAttribute('class', 'on');
+      if (g.hourT[h]) g.hourT[h].setAttribute('class', 'on');
+    }
+    f1probe();
+  }
+
+  function f1probe() {
+    var i = f1.hover, t, dy, h;
+    if (i >= 0) {
+      dy = Math.floor(i / 24); h = i % 24;
+      f1.probe.textContent = DAY[dy] + ' ' + pad2(h) + ':00 to ' + pad2((h + 1) % 24) + ':00 · ' + f1word(i);
+      f1.probe.classList.add('is-hover');
+      f1.probe.classList.remove('is-now');
+    } else if (f1.head >= 0) {
+      dy = Math.floor(f1.head / 24); h = f1.head % 24;
+      f1.probe.textContent = 'The run reaches ' + DAY[dy] + ' ' + pad2(h) + ':00 · the goal state';
+      f1.probe.classList.remove('is-hover');
+      f1.probe.classList.remove('is-now');
+    } else {
+      t = new Date(); dy = (t.getDay() + 6) % 7; h = t.getHours();
+      f1.probe.textContent = (f1.geo && !f1.geo.roomy ? 'Now: ' : 'Your clock: ') + DAY[dy] + ' ' + pad2(h) + ':' + pad2(t.getMinutes()) +
+        ' · this hour is ' + f1word(dy * 24 + h);
+      f1.probe.classList.remove('is-hover');
+      f1.probe.classList.add('is-now');
+    }
+  }
+
+  function f1now() {
+    var g = f1.geo, t = new Date(), dy = (t.getDay() + 6) % 7, h = t.getHours();
+    if (!g) return;
+    [g.now, g.ping].forEach(function (el) {
+      el.setAttribute('cx', px(g.x0 + h * g.pitch));
+      el.setAttribute('cy', px(g.y0 + dy * g.pitch));
+    });
+    f1probe();
+  }
+
+  function f1paint() {
+    var n = f1.hours - 40, i, cls, g = f1.geo;
+    f1.head = n > 0 && n < 128 ? order[n - 1] : -1;
+    if (g) {
+      g.hd.setAttribute('visibility', f1.head >= 0 ? 'visible' : 'hidden');
+      if (f1.head >= 0) {
+        g.hd.setAttribute('cx', px(g.x0 + (f1.head % 24) * g.pitch));
+        g.hd.setAttribute('cy', px(g.y0 + Math.floor(f1.head / 24) * g.pitch));
+      }
+    }
+    for (i = 0; i < f1.wells.length; i++) {
+      cls = rank[i] < 0 ? 'w s' : (rank[i] < n ? 'w r' : 'w');
+      if (f1.wells[i].getAttribute('class') !== cls) f1.wells[i].setAttribute('class', cls);
+    }
+    f1.count.textContent = f1.hours;
+    f1.pct.textContent = Math.round(f1.hours / 168 * 100) + '%';
+    f1.input.value = f1.hours;
+    f1.input.setAttribute('aria-valuetext', f1.hours + ' of 168 hours running');
+    f1.run.textContent = f1.hours >= 168 ? 'Back to one shift' : 'Run all 168 hours';
+    f1.state.textContent = f1.hours <= 40
+      ? 'One shift, Monday to Friday. Drag the handle to run the other 128 hours.'
+      : f1.hours >= 168
+        ? 'Goal state, the one we are building toward. Our first public benchmark run comes this winter.'
+        : (f1.hours - 40) + ' autonomous hours added. This is the goal we are building toward.';
+    f1probe();
+  }
+
+  function f1animate(to, done) {
+    f1.stop();
+    var from = f1.hours, t0 = 0;
+    var dur = reduce.matches ? 0 : (to > from ? Math.max(600, (to - from) * 21) : 650);
+    if (!dur) { f1.hours = to; f1paint(); if (done) done(); return; }
+    function step(ts) {
+      if (!t0) t0 = ts;
+      var k = clamp((ts - t0) / dur, 0, 1);
+      var e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      f1.hours = Math.round(from + (to - from) * e);
+      f1paint();
+      if (k < 1) f1.stop = nextFrame(step);
+      else if (done) done();
+    }
+    f1.stop = nextFrame(step);
+  }
+
+  /* The signature moment, played once without being asked: the run carries on through the dark hours,
+     holds at the goal, then the plate returns to the week as it is. Any touch of the controls cancels it. */
+  var demo = { on: false, timer: 0 };
+  function demoStop() { demo.on = false; clearTimeout(demo.timer); }
+  function demoStart() {
+    if (reduce.matches || d.hidden || f1.hours !== 40 || window.pageYOffset > window.innerHeight * 0.4) return;
+    demo.on = true;
+    f1animate(168, function () {
+      demo.timer = setTimeout(function () {
+        if (demo.on) { demo.on = false; f1animate(40); }
+      }, 1100);
+    });
+  }
+
+  f1.input.addEventListener('input', function () {
+    demoStop();
+    f1.stop();
+    f1.hours = clamp(+f1.input.value, 40, 168);
+    f1paint();
+  });
+  f1.run.addEventListener('click', function () { demoStop(); f1animate(f1.hours >= 168 ? 40 : 168); });
+  f1.input.addEventListener('pointerdown', demoStop);
+
+  /* ------------------------------------------------------------------
+     Fig. 2  0.99^n, to scale, with a hundred runs drawn under the curve.
+     ------------------------------------------------------------------ */
+  var f2 = {
+    plot: $('fig2-plot'), input: $('fig2-n'), nout: $('fig2-nout'), pct: $('fig2-pct'), eq: $('fig2-eq'),
+    presets: [$('fig2-p20'), $('fig2-p100'), $('fig2-p500')],
+    n: 100, geo: null, runs: [], stop: noop
+  };
+  function surv(n) { return Math.pow(0.99, n); }
+  function fmtPct(p) { var v = p * 100; return (v >= 9.95 ? String(Math.round(v)) : v.toFixed(1)) + '%'; }
+
+  function f2render() {
+    var W = f2.plot.clientWidth;
+    if (!W) return;
+    var phone = W < 560;
+    var ih = phone ? 300 : 400;                       // 3 or 4 px per run, so every hairline lands on a pixel
+    var mL = phone ? 34 : 46, mR = phone ? 14 : 24, mT = 30, mB = 54;
+    var iw = W - mL - mR, H = mT + ih + mB, ax = mT + ih + 0.5;
+    function X(n) { return mL + n / 500 * iw; }
+    function Y(p) { return mT + (1 - p) * ih; }
+
+    f2.plot.innerHTML = '';
+    var svg = svgEl('svg', { width: W, height: H, viewBox: '0 0 ' + W + ' ' + H, 'class': 'f2svg', 'aria-hidden': 'true' }, f2.plot);
+
+    // y scale
+    [0, 25, 50, 75, 100].forEach(function (v) {
+      var y = Math.round(Y(v / 100)) + 0.5;
+      if (v) svgEl('line', { x1: mL, x2: mL + iw, y1: y, y2: y, 'class': 'gl' }, svg);
+      svgEl('line', { x1: mL - 5, x2: mL, y1: y, y2: y, 'class': 'ax' }, svg);
+      label(svg, mL - 9, y + 3.5, v + (v === 100 ? '%' : ''), '', 'end');
+    });
+    label(svg, 0, mT - 14, 'runs that finish', '', 'start');
+
+    // a hundred runs, each drawn to the step where it fails
+    f2.runs = [];
+    var j, p, end, y, pitch = ih / 100;
+    for (j = 1; j <= 100; j++) {
+      p = (j - 0.5) / 100;
+      end = Math.min(500, Math.log(p) / Math.log(0.99));
+      y = Math.floor(mT + ih - (j - 0.5) * pitch) + 0.5;
+      f2.runs.push({ end: end, el: svgEl('line', { x1: mL, x2: px(X(end)), y1: y, y2: y, 'class': 'run' }, svg) });
+    }
+
+    // the curve itself
+    var path = 'M' + px(X(0)) + ' ' + px(Y(1)), n;
+    for (n = 2; n <= 500; n += 2) path += 'L' + px(X(n)) + ' ' + px(Y(surv(n)));
+    svgEl('path', { d: path, 'class': 'curve' }, svg);
+
+    // axes and ticks, to scale
+    svgEl('path', { d: 'M' + (mL + 0.5) + ' ' + mT + 'V' + ax + 'H' + (mL + iw), 'class': 'ax' }, svg);
+    for (n = 0; n <= 500; n += 20) {
+      var x = Math.round(X(n)) + 0.5, major = n % 100 === 0;
+      svgEl('line', { x1: x, x2: x, y1: ax, y2: ax + (major ? 7 : 4), 'class': 'ax' }, svg);
+      if (major) label(svg, x, ax + 30, n, '', 'middle');
+    }
+    label(svg, mL + iw, ax + 47, 'steps in the run, n', '', 'end');
+
+    // moving parts
+    var guide = svgEl('line', { 'class': 'guide' }, svg);
+    var cur = svgEl('line', { 'class': 'cur' }, svg);
+    [20, 100, 500].forEach(function (m) {
+      var mx = X(m), my = Y(surv(m)), last = m === 500;
+      svgEl('circle', { cx: px(mx), cy: px(my), r: 3.5, 'class': 'mk' }, svg);
+      label(svg, mx + (last ? 0 : 10), my - (last ? 12 : 8), fmtPct(surv(m)) + ' at ' + m, 'mk-t', last ? 'end' : 'start');
+    });
+    var knob = svgEl('circle', { r: 6.5, 'class': 'knob' }, svg);
+    var count = label(svg, mL + iw, mT + 19, '', 'count', 'end');
+
+    f2.geo = { X: X, Y: Y, mL: mL, iw: iw, ax: ax, guide: guide, cur: cur, knob: knob, count: count, phone: phone };
+
+    // the range input rides on the x axis: its thumb is the handle
+    f2.input.style.left = (mL - 12) + 'px';
+    f2.input.style.width = (iw + 24) + 'px';
+    f2.input.style.top = (ax - 22) + 'px';
+
+    dragX(svg, function (xpos) { f2stop(); f2set((xpos - mL) / iw * 500); });
+    f2set(f2.n);
+  }
+
+  function f2set(n) {
+    var g = f2.geo, i, alive = 0, dead, r;
+    n = clamp(Math.round(n), 0, 500);
+    f2.n = n;
+    if (!g) return;
+    var p = surv(n), x = px(g.X(n)), y = px(g.Y(p));
+    g.cur.setAttribute('x1', x); g.cur.setAttribute('x2', x); g.cur.setAttribute('y1', g.ax); g.cur.setAttribute('y2', y);
+    g.guide.setAttribute('x1', g.mL); g.guide.setAttribute('x2', x); g.guide.setAttribute('y1', y); g.guide.setAttribute('y2', y);
+    g.knob.setAttribute('cx', x); g.knob.setAttribute('cy', y);
+    for (i = 0; i < f2.runs.length; i++) {
+      r = f2.runs[i]; dead = r.end < n;
+      if (!dead) alive++;
+      if (r.dead !== dead) { r.dead = dead; r.el.setAttribute('class', dead ? 'run dead' : 'run'); }
+    }
+    g.count.textContent = alive + (g.phone ? ' of 100 still going at step ' : ' of 100 runs still going at step ') + n;
+    f2.nout.textContent = n;
+    f2.pct.textContent = fmtPct(p);
+    f2.eq.innerHTML = '0.99<sup>' + n + '</sup> = ' + (p >= 0.01 ? p.toFixed(3) : p.toFixed(4));
+    if (+f2.input.value !== n) f2.input.value = n;
+    f2.input.setAttribute('aria-valuetext', n + ' steps, ' + fmtPct(p) + ' of runs finish');
+    f2.presets.forEach(function (b) { b.setAttribute('aria-pressed', +b.getAttribute('data-n') === n ? 'true' : 'false'); });
+  }
+
+  function f2stop() { f2.stop(); }
+  function f2go(to) {
+    f2stop();
+    var from = f2.n, t0 = 0, dur = reduce.matches ? 0 : 520;
+    if (!dur) { f2set(to); return; }
+    function step(ts) {
+      if (!t0) t0 = ts;
+      var k = clamp((ts - t0) / dur, 0, 1), e = 1 - Math.pow(1 - k, 3);
+      f2set(from + (to - from) * e);
+      if (k < 1) f2.stop = nextFrame(step);
+    }
+    f2.stop = nextFrame(step);
+  }
+  f2.input.addEventListener('input', function () { f2stop(); f2set(+f2.input.value); });
+  f2.presets.forEach(function (b) {
+    b.addEventListener('click', function () { f2go(+b.getAttribute('data-n')); });
+  });
+
+  /* ------------------------------------------------------------------
+     Fig. 3  One field of labs, drawn two ways either side of a divide.
+     An illustration: positions and sizes carry no data.
+     ------------------------------------------------------------------ */
+  var f3 = {
+    stage: $('fig3-stage'), cv: $('fig3-canvas'), input: $('fig3-split'),
+    split: 0.5, labs: [], bigs: [], W: 0, H: 0, r: 5, ctx: null, col: null,
+    vis: false, raf: 0, t: 40, last: 0
+  };
+  function prng(seed) {                                // mulberry32, so the field is the same on every load
+    return function () {
+      seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function f3setup() {
+    var W = f3.stage.clientWidth, H = f3.cv.clientHeight;
+    if (!W || !H) return;
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    f3.cv.width = Math.round(W * dpr);
+    f3.cv.height = Math.round(H * dpr);
+    f3.ctx = f3.cv.getContext('2d');
+    f3.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    f3.W = W; f3.H = H;
+    f3.col = { ink: tok('--ink'), ink3: tok('--ink-3'), amber: tok('--amber') };
+
+    var phone = W < 560, pitch = phone ? 16 : 20, rnd = prng(119);
+    f3.r = pitch * 0.3;
+    var gapR = phone ? 6 : 7;
+    var spec = phone
+      ? [[0.24, 0.47, 0.24], [0.75, 0.57, 0.21]]
+      : [[0.10, 0.47, 0.22], [0.275, 0.70, 0.14], [0.41, 0.37, 0.19], [0.66, 0.60, 0.25], [0.90, 0.40, 0.17]];
+    f3.bigs = spec.map(function (s) {
+      var b = { x: s[0] * W, y: s[1] * H, R: s[2] * H, rings: [] }, rr, k = 0;
+      for (rr = b.R; rr > 5; rr -= gapR) b.rings.push({ r: rr, ph: rnd() * TAU, dir: (k++ % 2) ? -1 : 1 });
+      return b;
+    });
+
+    f3.labs = [];
+    var rows = Math.ceil(H / (pitch * 0.866)) + 1, cols = Math.ceil(W / pitch) + 1, row, col, x, y, i, b, inBig;
+    for (row = 0; row < rows; row++) {
+      for (col = -1; col < cols; col++) {
+        x = col * pitch + (row % 2 ? pitch / 2 : 0) + pitch * 0.25;
+        y = row * pitch * 0.866 + pitch * 0.1;
+        inBig = false;
+        for (i = 0; i < f3.bigs.length; i++) {
+          b = f3.bigs[i];
+          if (Math.pow(x - b.x, 2) + Math.pow(y - b.y, 2) < Math.pow(b.R + pitch * 0.6, 2)) { inBig = true; break; }
+        }
+        f3.labs.push({ x: x, y: y, ph: x * 0.045 + y * 0.028, sp: 1.1, big: inBig });
+      }
+    }
+    f3draw();
+  }
+
+  function f3draw() {
+    var c = f3.ctx, W = f3.W, H = f3.H, r = f3.r, t = f3.t;
+    if (!c) return;
+    var sx = Math.round(f3.split * W), i, k, L, b, g, a;
+    c.clearRect(0, 0, W, H);
+
+    if (sx > 0) {                                     // (a) a few very large labs; every other lab is a point
+      c.save(); c.beginPath(); c.rect(0, 0, sx, H); c.clip();
+      c.fillStyle = f3.col.ink3;
+      c.beginPath();
+      for (i = 0; i < f3.labs.length; i++) {
+        L = f3.labs[i];
+        if (!L.big && L.x < sx + 2) { c.moveTo(L.x + 1.1, L.y); c.arc(L.x, L.y, 1.1, 0, TAU); }
+      }
+      c.fill();
+      c.strokeStyle = f3.col.ink; c.fillStyle = f3.col.ink; c.lineWidth = 1;
+      for (i = 0; i < f3.bigs.length; i++) {
+        b = f3.bigs[i];
+        if (b.x - b.R > sx) continue;
+        c.globalAlpha = 0.5;
+        c.beginPath();
+        for (k = 1; k < b.rings.length; k++) { g = b.rings[k]; c.moveTo(b.x + g.r, b.y); c.arc(b.x, b.y, g.r, 0, TAU); }
+        c.stroke();
+        c.globalAlpha = 1;
+        c.beginPath(); c.arc(b.x, b.y, b.R, 0, TAU); c.stroke();
+        c.beginPath();
+        for (k = 0; k < b.rings.length; k++) {
+          g = b.rings[k]; a = g.ph + g.dir * t * 16 / g.r;
+          c.moveTo(b.x + g.r * Math.cos(a) + 1.8, b.y + g.r * Math.sin(a));
+          c.arc(b.x + g.r * Math.cos(a), b.y + g.r * Math.sin(a), 1.8, 0, TAU);
+        }
+        c.fill();
+      }
+      c.restore();
+    }
+
+    if (sx < W) {                                     // (b) every lab has its own closed loop
+      c.save(); c.beginPath(); c.rect(sx, 0, W - sx, H); c.clip();
+      c.strokeStyle = f3.col.ink; c.fillStyle = f3.col.ink; c.lineWidth = 1;
+      c.globalAlpha = 0.5;
+      c.beginPath();
+      for (i = 0; i < f3.labs.length; i++) {
+        L = f3.labs[i];
+        if (L.x > sx - 8) { c.moveTo(L.x + r, L.y); c.arc(L.x, L.y, r, 0, TAU); }
+      }
+      c.stroke();
+      c.globalAlpha = 1;
+      c.beginPath();
+      for (i = 0; i < f3.labs.length; i++) {
+        L = f3.labs[i];
+        if (L.x > sx - 8) {
+          a = L.ph + t * L.sp;
+          c.moveTo(L.x + r * Math.cos(a) + 1.4, L.y + r * Math.sin(a));
+          c.arc(L.x + r * Math.cos(a), L.y + r * Math.sin(a), 1.4, 0, TAU);
+        }
+      }
+      c.fill();
+      c.restore();
+    }
+
+    c.strokeStyle = f3.col.amber; c.lineWidth = 2;    // the divide
+    c.beginPath(); c.moveTo(sx, 0); c.lineTo(sx, H); c.stroke();
+  }
+
+  /* The loop runs only while the figure is on screen and the tab is visible. */
+  function f3loop(ts) {
+    f3.raf = 0;
+    if (!f3.vis || d.hidden) { f3.last = 0; return; }
+    if (f3.last) f3.t += Math.min(0.05, (ts - f3.last) / 1000);
+    f3.last = ts;
+    f3draw();
+    if (!reduce.matches) f3.raf = requestAnimationFrame(f3loop);
+  }
+  function f3kick() { if (!f3.raf) f3.raf = requestAnimationFrame(f3loop); }
+  function f3split(v, fromInput) {
+    f3.split = clamp(v, 0, 1);
+    if (!fromInput) f3.input.value = Math.round(f3.split * 100);
+    f3.input.setAttribute('aria-valuetext', 'a few labs on ' + Math.round(f3.split * 100) + '% of the field');
+    if (reduce.matches || !f3.raf) f3draw();
+  }
+  dragX(f3.stage, function (xpos) { f3split(xpos / f3.W); });
+  f3.input.addEventListener('input', function () { f3split(+f3.input.value / 100, true); });
+
+  /* ------------------------------------------------------------------
+     Start, resize, visibility
+     ------------------------------------------------------------------ */
+  f1render(reduce.matches ? '' : 'pre');
+  f2render();
+  f3setup();
+
+  // once the type has settled, measure again and ink the 40 staffed hours in clock order
+  var settled = false;
+  function settle() {
+    if (settled) return;
+    settled = true;
+    f1render(reduce.matches ? '' : 'intro');
+    f2render();
+    setTimeout(demoStart, 1900);
+  }
+  if (d.fonts && d.fonts.ready) d.fonts.ready.then(settle);
+  setTimeout(settle, 1200);
+
+  f1.timer = setInterval(function () { if (!d.hidden) f1now(); }, 15000);
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (en) {
+      f1.fig.classList.toggle('off', !en[0].isIntersecting);
+    }).observe(f1.fig);
+    new IntersectionObserver(function (en) {
+      f3.vis = en[0].isIntersecting;
+      if (f3.vis) f3kick();
+    }).observe(f3.stage);
+  } else {
+    f3.vis = true; f3kick();
+  }
+  d.addEventListener('visibilitychange', function () { if (!d.hidden) { f1now(); f3kick(); } });
+
+  var lastW = window.innerWidth, lastH = window.innerHeight, rt = 0;
+  window.addEventListener('resize', function () {
+    clearTimeout(rt);
+    rt = setTimeout(function () {
+      var w = window.innerWidth, h = window.innerHeight, wch = w !== lastW, hch = h !== lastH;
+      lastW = w; lastH = h;
+      if (wch || (hch && w > 720)) f1render('');
+      if (wch) { f2render(); f3setup(); f3kick(); }
+    }, 120);
+  });
+})();
+</script>
+</body>
+</html>
